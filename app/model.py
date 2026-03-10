@@ -2,6 +2,11 @@ import random
 
 from pydantic import BaseModel, Field
 
+HIGH_INCOME_THRESHOLD = 50000
+HIGH_CREDIT_LIMIT_THRESHOLD = 10000
+LOW_RISK_SCORE_RANGE = (0.7, 0.99)
+HIGH_RISK_SCORE_RANGE = (0.3, 0.69)
+
 
 class ClientFeatures(BaseModel):
     age: int = Field(..., description="Возраст клиента")
@@ -17,12 +22,15 @@ def load_model() -> dict:
 
 
 def predict(model: dict, features: ClientFeatures) -> dict:
-    """Симуляция предсказания на основе данных клиента."""
-    if features.income > 50000 and features.credit_limit > 10000:
-        score = random.uniform(0.7, 0.99)
+    """Симулирует предсказание и возвращает model_version, prediction и score."""
+    if (
+        features.income > HIGH_INCOME_THRESHOLD
+        and features.credit_limit > HIGH_CREDIT_LIMIT_THRESHOLD
+    ):
+        score = random.uniform(*LOW_RISK_SCORE_RANGE)
         prediction = "low_risk"
     else:
-        score = random.uniform(0.3, 0.69)
+        score = random.uniform(*HIGH_RISK_SCORE_RANGE)
         prediction = "high_risk"
 
     return {
@@ -30,4 +38,3 @@ def predict(model: dict, features: ClientFeatures) -> dict:
         "prediction": prediction,
         "score": round(score, 4),
     }
-
