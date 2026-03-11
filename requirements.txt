@@ -1,6 +1,6 @@
-fastapi
-uvicorn[standard]
-pytest
-requests
-flake8
-httpx
+fastapi==0.135.1
+uvicorn[standard]==0.41.0
+pytest==9.0.2
+requests==2.31.0
+flake8==7.3.0
+httpx==0.28.1
