@@ -1,0 +1,11 @@
+.git
+.gitignore
+__pycache__/
+.pytest_cache/
+tests/
+*.pyc
+*.pyo
+*.pyd
+README.md
+CHANGELOG.md
+ansible-fastapi-hw/
