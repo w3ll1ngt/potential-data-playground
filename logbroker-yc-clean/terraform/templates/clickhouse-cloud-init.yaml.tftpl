@@ -1,0 +1,34 @@
+#cloud-config
+hostname: ${instance_name}
+bootcmd:
+  - echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+package_update: true
+package_upgrade: false
+packages:
+  - docker.io
+users:
+  - name: ${ssh_user}
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: [sudo, docker]
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+write_files:
+  - path: /etc/clickhouse.env
+    permissions: '0600'
+    content: |
+      CLICKHOUSE_DB=${clickhouse_db}
+      CLICKHOUSE_USER=${clickhouse_user}
+      CLICKHOUSE_PASSWORD=${clickhouse_password}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+  - path: /opt/clickhouse/init/01-init.sql
+    permissions: '0644'
+    encoding: b64
+    content: ${init_sql_b64}
+runcmd:
+  - systemctl enable docker
+  - systemctl start docker
+  - mkdir -p /var/lib/clickhouse /var/log/clickhouse-server
+  - docker rm -f clickhouse-server || true
+  - docker pull clickhouse/clickhouse-server:${clickhouse_image_tag}
+  - docker run -d --restart unless-stopped --name clickhouse-server --ulimit nofile=262144:262144 -p 8123:8123 -p 9000:9000 --env-file /etc/clickhouse.env -v /var/lib/clickhouse:/var/lib/clickhouse -v /var/log/clickhouse-server:/var/log/clickhouse-server -v /opt/clickhouse/init:/docker-entrypoint-initdb.d clickhouse/clickhouse-server:${clickhouse_image_tag}

@@ -1,0 +1,66 @@
+#cloud-config
+hostname: ${instance_name}
+bootcmd:
+  - echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+package_update: true
+package_upgrade: false
+packages:
+  - python3
+  - python3-venv
+  - python3-pip
+users:
+  - name: ${ssh_user}
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: [sudo]
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+write_files:
+  - path: /opt/logbroker/app/main.py
+    permissions: '0644'
+    encoding: b64
+    content: ${app_main_b64}
+  - path: /opt/logbroker/app/config.py
+    permissions: '0644'
+    encoding: b64
+    content: ${app_config_b64}
+  - path: /opt/logbroker/app/models.py
+    permissions: '0644'
+    encoding: b64
+    content: ${app_models_b64}
+  - path: /opt/logbroker/app/spool.py
+    permissions: '0644'
+    encoding: b64
+    content: ${app_spool_b64}
+  - path: /opt/logbroker/app/clickhouse_http.py
+    permissions: '0644'
+    encoding: b64
+    content: ${app_clickhouse_b64}
+  - path: /opt/logbroker/app/requirements.txt
+    permissions: '0644'
+    encoding: b64
+    content: ${requirements_b64}
+  - path: /etc/systemd/system/logbroker.service
+    permissions: '0644'
+    encoding: b64
+    content: ${service_b64}
+  - path: /etc/logbroker.env
+    permissions: '0600'
+    content: |
+      LOGBROKER_CH_SCHEME=http
+      LOGBROKER_CH_HOST=${clickhouse_host}
+      LOGBROKER_CH_PORT=8123
+      LOGBROKER_CH_USER=${clickhouse_user}
+      LOGBROKER_CH_PASSWORD=${clickhouse_password}
+      LOGBROKER_DATA_DIR=/var/lib/logbroker
+      LOGBROKER_FLUSH_INTERVAL_SECONDS=${flush_interval_seconds}
+      LOGBROKER_REQUEST_TIMEOUT_SECONDS=10
+      LOGBROKER_INSTANCE_NAME=${instance_name}
+runcmd:
+  - mkdir -p /var/lib/logbroker
+  - python3 -m venv /opt/logbroker/venv
+  - /opt/logbroker/venv/bin/pip install --upgrade pip
+  - /opt/logbroker/venv/bin/pip install --no-cache-dir -r /opt/logbroker/app/requirements.txt
+  - systemctl daemon-reload
+  - systemctl enable logbroker.service
+  - systemctl restart logbroker.service

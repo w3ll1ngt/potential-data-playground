@@ -1,0 +1,23 @@
+#cloud-config
+hostname: ${instance_name}
+package_update: true
+package_upgrade: false
+packages:
+  - nginx
+users:
+  - name: ${ssh_user}
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: [sudo]
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+write_files:
+  - path: /etc/nginx/conf.d/logbroker.conf
+    permissions: '0644'
+    encoding: b64
+    content: ${nginx_conf_b64}
+runcmd:
+  - rm -f /etc/nginx/sites-enabled/default
+  - nginx -t
+  - systemctl enable nginx
+  - systemctl restart nginx

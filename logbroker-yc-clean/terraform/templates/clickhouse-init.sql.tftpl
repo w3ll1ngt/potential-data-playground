@@ -1,0 +1,9 @@
+CREATE DATABASE IF NOT EXISTS ${clickhouse_db};
+CREATE TABLE IF NOT EXISTS ${clickhouse_db}.${clickhouse_table}
+(
+    a Int32,
+    b String DEFAULT ''
+)
+ENGINE = MergeTree()
+PRIMARY KEY a
+ORDER BY a;

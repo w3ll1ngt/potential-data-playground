@@ -1,0 +1,17 @@
+[Unit]
+Description=Logbroker FastAPI service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/logbroker/app
+EnvironmentFile=/etc/logbroker.env
+ExecStart=/opt/logbroker/venv/bin/uvicorn main:app --host 0.0.0.0 --port 80 --access-log
+Restart=always
+RestartSec=3
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
