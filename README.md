@@ -421,3 +421,56 @@ uvicorn app.main:app
 ```bash
 pytest
 ```
+
+---
+
+## 9. Docker
+
+### Сборка базового образа (Часть 1)
+
+```bash
+docker build -t ml-app:1.0 .
+```
+
+### Запуск контейнера и тестовый запрос
+
+```bash
+docker run -d -p 8000:8000 --name ml-app ml-app:1.0
+
+# health-check
+curl http://localhost:8000/health
+
+# тестовый запрос
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"age": 35, "income": 75000, "months_on_book": 24, "credit_limit": 15000}'
+
+docker stop ml-app && docker rm ml-app
+```
+
+### Docker Compose
+
+```bash
+# Запуск
+docker-compose up -d
+
+# Остановка
+docker-compose down
+```
+
+### Многоэтапная сборка (Часть 2)
+
+```bash
+docker build -f Dockerfile.multi -t ml-app:1.0-slim .
+```
+
+### Сравнение размеров образов
+
+| Образ            | Размер  |
+|------------------|---------|
+| `ml-app:1.0`     | ~250 MB |
+| `ml-app:1.0-slim` | ~220 MB |
+
+> Точные значения зависят от окружения. Многоэтапная сборка уменьшает
+> итоговый образ за счёт того, что в финальный слой не попадают кэши pip
+> и промежуточные артефакты сборки.

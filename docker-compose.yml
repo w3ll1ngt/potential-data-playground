@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  ml-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ml-app:1.0
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
