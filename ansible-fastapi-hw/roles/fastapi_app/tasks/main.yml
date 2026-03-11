@@ -1,0 +1,34 @@
+---
+- name: Create application directory on target server
+  ansible.builtin.file:
+    path: /opt/fastapi_app
+    state: directory
+    mode: "0755"
+
+- name: Copy application files to target server
+  ansible.builtin.copy:
+    src: "app/{{ item }}"
+    dest: "/opt/fastapi_app/{{ item }}"
+    mode: "0644"
+  loop:
+    - main.py
+    - requirements.txt
+    - Dockerfile
+
+- name: Build Docker image from Dockerfile
+  community.docker.docker_image:
+    name: fastapi
+    tag: latest
+    build:
+      path: /opt/fastapi_app
+    source: build
+    state: present
+
+- name: Run FastAPI container
+  community.docker.docker_container:
+    name: fastapi_container
+    image: fastapi:latest
+    state: started
+    restart_policy: always
+    ports:
+      - "80:8000"
